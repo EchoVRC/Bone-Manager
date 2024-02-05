@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Bone Manager",
     "author": "EchoVRC",
-    "version": (1, 0),
+    "version": (1, 1),
     "blender": (3, 3, 0),
     "location": "View3D > UI",
     "description": "Manage bone visibility and other properties",
@@ -39,12 +39,12 @@ class BoneManager(bpy.types.Panel):
         layout = self.layout
         space = context.space_data
 
-        self.draw_header(layout)
+        self.draw_custom_header(layout)
         self.draw_toggle_buttons(layout, space)
         self.draw_actions(layout)
         self.draw_statistics(layout)
 
-    def draw_header(self, layout):
+    def draw_custom_header(self, layout):
         row = layout.row()
         row.label(text="Use hotkey: alt + Y")
 
