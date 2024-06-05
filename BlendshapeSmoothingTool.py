@@ -12,68 +12,86 @@ import bpy
 import bmesh
 from mathutils import Vector
 
-class BlendShapeItem(bpy.types.PropertyGroup):
-    name: bpy.props.StringProperty(name="Name")
-    select: bpy.props.BoolProperty(name="Select", default=False, update=lambda self, context: update_select(self, context))
+# Глобальная переменная для управления обновлениями
+bst_disable_update = False
 
-class VertexPosition(bpy.types.PropertyGroup):
-    x: bpy.props.FloatProperty(name="X")
-    y: bpy.props.FloatProperty(name="Y")
-    z: bpy.props.FloatProperty(name="Z")
+class BST_BlendShapeItem(bpy.types.PropertyGroup):
+    bst_name: bpy.props.StringProperty(name="Name")
+    bst_select: bpy.props.BoolProperty(name="Select", default=False, update=lambda self, context: bst_update_select(self, context))
 
-class BlendShapeProperties(bpy.types.PropertyGroup):
-    all_blendshapes: bpy.props.BoolProperty(name="All Blendshapes", default=True, update=lambda self, context: update_all_blendshapes(self, context))
-    iterations: bpy.props.IntProperty(name="Iterations", default=1, min=1, max=10, update=lambda self, context: update_iterations(self, context))
-    preview: bpy.props.BoolProperty(name="Preview", default=False, update=lambda self, context: update_preview(self, context))
-    selected_blendshapes: bpy.props.CollectionProperty(type=BlendShapeItem)
-    original_positions: bpy.props.CollectionProperty(type=VertexPosition)
-    selected_object: bpy.props.PointerProperty(name="Selected Object", type=bpy.types.Object)
-    strength: bpy.props.FloatProperty(name="Strength", default=0.5, min=0.0, max=1.0, update=lambda self, context: update_strength(self, context))
+class BST_VertexPosition(bpy.types.PropertyGroup):
+    bst_x: bpy.props.FloatProperty(name="X")
+    bst_y: bpy.props.FloatProperty(name="Y")
+    bst_z: bpy.props.FloatProperty(name="Z")
 
-def update_select(self, context):
-    props = context.scene.blendshape_props
+class BST_BlendShapeProperties(bpy.types.PropertyGroup):
+    bst_all_blendshapes: bpy.props.BoolProperty(name="All Blendshapes", default=True, update=lambda self, context: bst_update_all_blendshapes(self, context))
+    bst_iterations: bpy.props.IntProperty(name="Iterations", default=1, min=1, max=10, update=lambda self, context: bst_update_iterations(self, context))
+    bst_preview: bpy.props.BoolProperty(name="Preview", default=False, update=lambda self, context: bst_update_preview(self, context))
+    bst_selected_blendshapes: bpy.props.CollectionProperty(type=BST_BlendShapeItem)
+    bst_original_positions: bpy.props.CollectionProperty(type=BST_VertexPosition)
+    bst_selected_object: bpy.props.PointerProperty(name="Selected Object", type=bpy.types.Object)
+    bst_strength: bpy.props.FloatProperty(name="Strength", default=0.5, min=0.0, max=1.0, update=lambda self, context: bst_update_strength(self, context))
+
+def bst_update_select(self, context):
+    global bst_disable_update
+    if bst_disable_update:
+        return
+    props = context.scene.bst_blendshape_props
     if not hasattr(context.scene, 'stt_shapekey_transfer_props') or not context.scene.stt_shapekey_transfer_props.stt_preview:
-        if props.preview:
-            bpy.ops.object.restore_original_values('INVOKE_DEFAULT')
-            bpy.ops.object.smooth_blendshapes('INVOKE_DEFAULT')
+        if props.bst_preview:
+            bpy.ops.object.bst_restore_original_values('INVOKE_DEFAULT')
+            bpy.ops.object.bst_smooth_blendshapes('INVOKE_DEFAULT')
 
-def update_all_blendshapes(self, context):
-    props = context.scene.blendshape_props
+def bst_update_all_blendshapes(self, context):
+    global bst_disable_update
+    if bst_disable_update:
+        return
+    props = context.scene.bst_blendshape_props
     if not hasattr(context.scene, 'stt_shapekey_transfer_props') or not context.scene.stt_shapekey_transfer_props.stt_preview:
-        if props.all_blendshapes and props.preview:
-            bpy.ops.object.restore_original_values('INVOKE_DEFAULT')
-            bpy.ops.object.smooth_blendshapes('INVOKE_DEFAULT')
+        if props.bst_all_blendshapes and props.bst_preview:
+            bpy.ops.object.bst_restore_original_values('INVOKE_DEFAULT')
+            bpy.ops.object.bst_smooth_blendshapes('INVOKE_DEFAULT')
 
-def update_iterations(self, context):
-    props = context.scene.blendshape_props
+def bst_update_iterations(self, context):
+    global bst_disable_update
+    if bst_disable_update:
+        return
+    props = context.scene.bst_blendshape_props
     if not hasattr(context.scene, 'stt_shapekey_transfer_props') or not context.scene.stt_shapekey_transfer_props.stt_preview:
-        if props.preview:
-            bpy.ops.object.restore_original_values('INVOKE_DEFAULT')
-            bpy.ops.object.smooth_blendshapes('INVOKE_DEFAULT')
+        if props.bst_preview:
+            bpy.ops.object.bst_restore_original_values('INVOKE_DEFAULT')
+            bpy.ops.object.bst_smooth_blendshapes('INVOKE_DEFAULT')
 
-def update_strength(self, context):
-    props = context.scene.blendshape_props
+def bst_update_strength(self, context):
+    global bst_disable_update
+    if bst_disable_update:
+        return
+    props = context.scene.bst_blendshape_props
     if not hasattr(context.scene, 'stt_shapekey_transfer_props') or not context.scene.stt_shapekey_transfer_props.stt_preview:
-        if props.preview:
-            bpy.ops.object.restore_original_values('INVOKE_DEFAULT')
-            bpy.ops.object.smooth_blendshapes('INVOKE_DEFAULT')
+        if props.bst_preview:
+            bpy.ops.object.bst_restore_original_values('INVOKE_DEFAULT')
+            bpy.ops.object.bst_smooth_blendshapes('INVOKE_DEFAULT')
 
-def update_preview(self, context):
+def bst_update_preview(self, context):
+    global bst_disable_update
+    if bst_disable_update:
+        return
     if not hasattr(context.scene, 'stt_shapekey_transfer_props') or not context.scene.stt_shapekey_transfer_props.stt_preview:
-        if self.preview:
-            bpy.ops.object.save_original_values('INVOKE_DEFAULT')
-            bpy.ops.object.smooth_blendshapes('INVOKE_DEFAULT')
+        if self.bst_preview:
+            bpy.ops.object.bst_save_original_values('INVOKE_DEFAULT')
+            bpy.ops.object.bst_smooth_blendshapes('INVOKE_DEFAULT')
         else:
-            bpy.ops.object.restore_original_values('INVOKE_DEFAULT')
+            bpy.ops.object.bst_restore_original_values('INVOKE_DEFAULT')
 
-class SaveOriginalValuesOperator(bpy.types.Operator):
-    bl_idname = "object.save_original_values"
+class BST_SaveOriginalValuesOperator(bpy.types.Operator):
+    bl_idname = "object.bst_save_original_values"
     bl_label = "Save Original Values"
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        props = context.scene.blendshape_props
-        obj = props.selected_object
+        props = context.scene.bst_blendshape_props
+        obj = props.bst_selected_object
 
         if not obj or obj.type != 'MESH':
             return {'CANCELLED'}
@@ -82,72 +100,72 @@ class SaveOriginalValuesOperator(bpy.types.Operator):
         if not shape_keys:
             return {'CANCELLED'}
 
-        props.original_positions.clear()
+        props.bst_original_positions.clear()
 
         for key_block in shape_keys.key_blocks:
             for v in key_block.data:
-                pos = props.original_positions.add()
-                pos.x = v.co.x
-                pos.y = v.co.y
-                pos.z = v.co.z
+                pos = props.bst_original_positions.add()
+                pos.bst_x = v.co.x
+                pos.bst_y = v.co.y
+                pos.bst_z = v.co.z
 
         return {'FINISHED'}
 
-class RestoreOriginalValuesOperator(bpy.types.Operator):
-    bl_idname = "object.restore_original_values"
+class BST_RestoreOriginalValuesOperator(bpy.types.Operator):
+    bl_idname = "object.bst_restore_original_values"
     bl_label = "Restore Original Values"
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        props = context.scene.blendshape_props
-        obj = props.selected_object
+        props = context.scene.bst_blendshape_props
+        obj = props.bst_selected_object
 
         if not obj or obj.type != 'MESH':
             return {'CANCELLED'}
 
         shape_keys = obj.data.shape_keys
-        if not shape_keys or not props.original_positions:
+        if not shape_keys or not props.bst_original_positions:
             return {'CANCELLED'}
 
         index = 0
         for key_block in shape_keys.key_blocks:
             for vert in key_block.data:
-                orig_pos = props.original_positions[index]
-                vert.co = Vector((orig_pos.x, orig_pos.y, orig_pos.z))
+                orig_pos = props.bst_original_positions[index]
+                vert.co = Vector((orig_pos.bst_x, orig_pos.bst_y, orig_pos.bst_z))
                 index += 1
 
         return {'FINISHED'}
 
-class UpdateBlendShapesOperator(bpy.types.Operator):
-    bl_idname = "object.update_blendshapes"
+class BST_UpdateBlendShapesOperator(bpy.types.Operator):
+    bl_idname = "object.bst_update_blendshapes"
     bl_label = "Update Blendshapes"
     bl_options = {'INTERNAL'}
 
     def execute(self, context):
-        props = context.scene.blendshape_props
-        obj = props.selected_object
+        props = context.scene.bst_blendshape_props
+        obj = props.bst_selected_object
 
         if not obj or obj.type != 'MESH' or not obj.data.shape_keys:
             return {'CANCELLED'}
 
         shape_keys = obj.data.shape_keys.key_blocks
 
-        props.selected_blendshapes.clear()
+        props.bst_selected_blendshapes.clear()
         for key_block in shape_keys:
             if key_block.name != 'Basis':
-                item = props.selected_blendshapes.add()
-                item.name = key_block.name
+                item = props.bst_selected_blendshapes.add()
+                item.bst_name = key_block.name
 
         return {'FINISHED'}
 
-class SmoothBlendShapesOperator(bpy.types.Operator):
-    bl_idname = "object.smooth_blendshapes"
+class BST_SmoothBlendShapesOperator(bpy.types.Operator):
+    bl_idname = "object.bst_smooth_blendshapes"
     bl_label = "Smooth Blendshapes"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        props = context.scene.blendshape_props
-        obj = props.selected_object
+        props = context.scene.bst_blendshape_props
+        obj = props.bst_selected_object
 
         if not obj or obj.type != 'MESH':
             self.report({'ERROR'}, "Selected object is not a mesh")
@@ -161,12 +179,12 @@ class SmoothBlendShapesOperator(bpy.types.Operator):
 
         basis_key = shape_keys.key_blocks['Basis']
 
-        selected_keys = [item.name for item in props.selected_blendshapes if item.select]
+        selected_keys = [item.bst_name for item in props.bst_selected_blendshapes if item.bst_select]
 
         # Перебор всех shape keys для сглаживания
         for key_block in shape_keys.key_blocks:
-            if key_block.name != 'Basis' and (props.all_blendshapes or key_block.name in selected_keys):
-                self.smooth_shape_key(obj, basis_key, key_block, props.iterations, props.strength)
+            if key_block.name != 'Basis' and (props.bst_all_blendshapes or key_block.name in selected_keys):
+                self.smooth_shape_key(obj, basis_key, key_block, props.bst_iterations, props.bst_strength)
 
         self.report({'INFO'}, "Blendshapes smoothed successfully")
         return {'FINISHED'}
@@ -204,7 +222,7 @@ class SmoothBlendShapesOperator(bpy.types.Operator):
 
             bm.free()
 
-class BlendShapePanel(bpy.types.Panel):
+class BST_BlendShapePanel(bpy.types.Panel):
     bl_label = "Blendshape Smoothing"
     bl_idname = "OBJECT_PT_blendshape_smoothing"
     bl_space_type = 'VIEW_3D'
@@ -214,45 +232,54 @@ class BlendShapePanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        props = scene.blendshape_props
+        props = scene.bst_blendshape_props
 
-        layout.prop_search(props, "selected_object", context.scene, "objects", text="Object")
+        layout.prop_search(props, "bst_selected_object", context.scene, "objects", text="Object")
 
-        if props.selected_object:
-            layout.prop(props, "all_blendshapes")
+        if props.bst_selected_object:
+            layout.prop(props, "bst_all_blendshapes")
 
-            if not props.all_blendshapes:
-                layout.operator("object.update_blendshapes", text="Refresh Blendshapes List")
-                for item in props.selected_blendshapes:
+            if not props.bst_all_blendshapes:
+                layout.operator("object.bst_update_blendshapes", text="Refresh Blendshapes List")
+                for item in props.bst_selected_blendshapes:
                     row = layout.row()
-                    row.prop(item, "select", text=item.name)
+                    row.prop(item, "bst_select", text=item.bst_name)
 
-            layout.prop(props, "iterations")
-            layout.prop(props, "strength")
-            layout.prop(props, "preview", toggle=True, text="Preview")
-            layout.operator("object.smooth_blendshapes", text="Apply")
+            layout.prop(props, "bst_iterations")
+            layout.prop(props, "bst_strength")
+            layout.prop(props, "bst_preview", toggle=True, text="Preview")
+            layout.operator("object.bst_smooth_blendshapes", text="Apply")
 
 def register():
-    bpy.utils.register_class(BlendShapeItem)
-    bpy.utils.register_class(VertexPosition)
-    bpy.utils.register_class(BlendShapeProperties)
-    bpy.utils.register_class(SaveOriginalValuesOperator)
-    bpy.utils.register_class(RestoreOriginalValuesOperator)
-    bpy.utils.register_class(UpdateBlendShapesOperator)
-    bpy.utils.register_class(SmoothBlendShapesOperator)
-    bpy.utils.register_class(BlendShapePanel)
-    bpy.types.Scene.blendshape_props = bpy.props.PointerProperty(type=BlendShapeProperties)
+    bpy.utils.register_class(BST_BlendShapeItem)
+    bpy.utils.register_class(BST_VertexPosition)
+    bpy.utils.register_class(BST_BlendShapeProperties)
+    bpy.utils.register_class(BST_SaveOriginalValuesOperator)
+    bpy.utils.register_class(BST_RestoreOriginalValuesOperator)
+    bpy.utils.register_class(BST_UpdateBlendShapesOperator)
+    bpy.utils.register_class(BST_SmoothBlendShapesOperator)
+    bpy.utils.register_class(BST_BlendShapePanel)
+    bpy.types.Scene.bst_blendshape_props = bpy.props.PointerProperty(type=BST_BlendShapeProperties)
+    bpy.app.timers.register(bst_reset_preview)
 
 def unregister():
-    bpy.utils.unregister_class(BlendShapeItem)
-    bpy.utils.unregister_class(VertexPosition)
-    bpy.utils.unregister_class(BlendShapeProperties)
-    bpy.utils.unregister_class(SaveOriginalValuesOperator)
-    bpy.utils.unregister_class(RestoreOriginalValuesOperator)
-    bpy.utils.unregister_class(UpdateBlendShapesOperator)
-    bpy.utils.unregister_class(SmoothBlendShapesOperator)
-    bpy.utils.unregister_class(BlendShapePanel)
-    del bpy.types.Scene.blendshape_props
+    bpy.utils.unregister_class(BST_BlendShapeItem)
+    bpy.utils.unregister_class(BST_VertexPosition)
+    bpy.utils.unregister_class(BST_BlendShapeProperties)
+    bpy.utils.unregister_class(BST_SaveOriginalValuesOperator)
+    bpy.utils.unregister_class(BST_RestoreOriginalValuesOperator)
+    bpy.utils.unregister_class(BST_UpdateBlendShapesOperator)
+    bpy.utils.unregister_class(BST_SmoothBlendShapesOperator)
+    bpy.utils.unregister_class(BST_BlendShapePanel)
+    del bpy.types.Scene.bst_blendshape_props
+
+def bst_reset_preview():
+    """Сбрасывает состояние превью при регистрации плагина без вызова обработчика"""
+    global bst_disable_update
+    props = bpy.context.scene.bst_blendshape_props
+    bst_disable_update = True
+    props.bst_preview = False
+    bst_disable_update = False
 
 if __name__ == "__main__":
     register()
