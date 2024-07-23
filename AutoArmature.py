@@ -6,6 +6,7 @@ bl_info = {
 }
 
 import bpy
+from bpy.app.handlers import persistent
 
 class OBJECT_OT_auto_armature_weight_paint(bpy.types.Operator):
     bl_idname = "object.auto_armature_weight_paint"
@@ -42,16 +43,31 @@ def auto_armature_weight_paint_handler(scene):
         print("AAS: End")
         scene.auto_armature_progress = False
 
+@persistent
+def load_post_handler(dummy):
+    print("AAS: Handler registered")
+    bpy.app.handlers.depsgraph_update_post.append(auto_armature_weight_paint_handler)
+    bpy.app.handlers.frame_change_post.append(auto_armature_weight_paint_handler)
+    
+
 def register():
     bpy.utils.register_class(OBJECT_OT_auto_armature_weight_paint)
-    bpy.app.handlers.depsgraph_update_post.append(auto_armature_weight_paint_handler)
     bpy.types.Scene.auto_armature_executed = bpy.props.BoolProperty(default=False)
     bpy.types.Scene.auto_armature_progress = bpy.props.BoolProperty(default=False)
-    print("AAS: Loaded")
+
+    bpy.app.handlers.load_post.append(load_post_handler)
+    bpy.app.handlers.depsgraph_update_post.append(auto_armature_weight_paint_handler)
+    bpy.app.handlers.frame_change_post.append(auto_armature_weight_paint_handler)
+    print("AAS: Loaded (frame_change_post)")
 
 def unregister():
     bpy.utils.unregister_class(OBJECT_OT_auto_armature_weight_paint)
-    bpy.app.handlers.depsgraph_update_post.remove(auto_armature_weight_paint_handler)
+    if auto_armature_weight_paint_handler in bpy.app.handlers.depsgraph_update_post:
+        bpy.app.handlers.frame_change_post.remove(auto_armature_weight_paint_handler)
+    if auto_armature_weight_paint_handler in bpy.app.handlers.depsgraph_update_post:
+        bpy.app.handlers.depsgraph_update_post.remove(auto_armature_weight_paint_handler)
+    if load_post_handler in bpy.app.handlers.load_post:
+        bpy.app.handlers.load_post.remove(load_post_handler)
     del bpy.types.Scene.auto_armature_executed
     del bpy.types.Scene.auto_armature_progress
 
